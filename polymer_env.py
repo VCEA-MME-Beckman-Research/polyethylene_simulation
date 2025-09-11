@@ -108,11 +108,13 @@ class PolymerSimulationEnv:
 
             aXL_t = (7.324e-4 * day - 1.034e-3)
             bXL_t = (-5.631e-5 * day + 1.015)
-            crosslink_rate = -aXL_t * (self.params['dose_rate'] ** bXL_t)
+            crosslink_rate = aXL_t * (self.params['dose_rate'] ** bXL_t)
+            crosslink_rate = max(0.0, crosslink_rate)  # Ensure non-negative rate
 
             aSC_t = (3.385e-4 * day**2 + 3.152e-2 * day - 4.905e-1)
             bSC_t = (1.575e-4 * day + 5.168e-1)
             scission_rate = aSC_t * (self.params['dose_rate'] ** bSC_t)
+            scission_rate = max(0.0, scission_rate)  # Ensure non-negative rate
 
             # --- Spatially-Aware Crosslinking ---
             num_xl = int((crosslink_rate / 100) * G.number_of_nodes())
