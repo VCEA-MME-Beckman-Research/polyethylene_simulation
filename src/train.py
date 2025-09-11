@@ -83,7 +83,7 @@ def objective(trial: optuna.trial.Trial) -> float:
 
         # Reset the environment to obtain the initial state and dose rate.
         state, reset_info = env.reset()
-        initial_dose_rate = reset_info.get("dose_rate")
+        initial_dose_rate = reset_info.get("dose_rate", 0.0)
         total_reward = 0.0  # Accumulator for the total reward in this trial
 
         # Log run metadata after environment reset to ensure accurate initialization
