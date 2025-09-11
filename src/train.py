@@ -53,31 +53,12 @@ def objective(trial: optuna.trial.Trial) -> float:
         float: The final reward achieved by the agent in this trial, which Optuna
                aims to maximize.
     """
-    run_id = str(uuid.uuid4()) # Generate a unique ID for this simulation run
-    start_time = datetime.now() # Record the start time of the trial
-    status = "running" # Initial status of the run
-    final_reward = 0.0 # Initialize final reward
-
-    # Initialize environment, agent, and replay buffer for the current trial.
-    env = PolymerSimulationEnv(config)
-        agent = SAC(trial_config) # Pass the updated config to the SAC agent
-        replay_buffer = ReplayBuffer()
-
-        total_reward = 0.0 # Accumulator for the total reward in this trial
-        state = env.reset() # Reset the environment to get the initial state
-        initial_dose_rate = env.dose_rate # Capture the initial dose rate after environment reset
-
-        # Log run metadata after environment reset to ensure accurate initialization
-        log_run_metadata(db_path, {
-            "run_id": run_id,
-            "optuna_trial_id": trial.number, # Optuna's unique trial number
-            "start_time": start_time.isoformat(),
-            "end_time": None,
-            "duration_seconds": None,
-            "initial_dose_rate": initial_dose_rate,
-            "final_reward": final_reward,
-            "status": status
-        })
+    run_id = str(uuid.uuid4())  # Generate a unique ID for this simulation run
+    start_time = datetime.now()  # Record the start time of the trial
+    status = "running"  # Initial status of the run
+    final_reward = 0.0  # Initialize final reward
+    initial_dose_rate = None  # Will be set after environment reset
+    total_reward = 0.0  # Accumulator for the total reward in this trial
 
     try:
         # --- Hyperparameter Suggestion by Optuna ---
@@ -97,15 +78,15 @@ def objective(trial: optuna.trial.Trial) -> float:
 
         # Initialize environment, agent, and replay buffer for the current trial.
         env = PolymerSimulationEnv(trial_config)
-        agent = SAC(trial_config) # Pass the updated config to the SAC agent
+        agent = SAC(trial_config)  # Pass the updated config to the SAC agent
         replay_buffer = ReplayBuffer()
 
-        total_reward = 0.0 # Accumulator for the total reward in this trial
-        state = env.initial_state # Retrieve the initial state directly from the environment
-        # initial_dose_rate is no longer returned by env.reset(), it's passed to the constructor
-        initial_dose_rate = trial_config['run_parameters']['param_bounds']['dose_rate'][0] # Assuming first value is initial dose rate
+        # Reset the environment to obtain the initial state and dose rate.
+        state, reset_info = env.reset()
+        initial_dose_rate = reset_info.get("dose_rate")
+        total_reward = 0.0  # Accumulator for the total reward in this trial
 
-        # Update the run_metadata with the actual initial dose rate.
+        # Log run metadata after environment reset to ensure accurate initialization
         log_run_metadata(db_path, {
             "run_id": run_id,
             "optuna_trial_id": trial.number,
