@@ -16,12 +16,7 @@ import argparse
 import yaml
 from pathlib import Path
 
-# --- Basic Setup ---
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)-8s] %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S"
-)
+logger = logging.getLogger(__name__)
 
 def load_config(config_path="config.yaml"):
     """Loads the YAML configuration file."""
@@ -29,36 +24,36 @@ def load_config(config_path="config.yaml"):
         with open(config_path, 'r') as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        logging.error(f"Configuration file not found at: {config_path}")
+        logger.error(f"Configuration file not found at: {config_path}")
         sys.exit(1)
     except yaml.YAMLError as e:
-        logging.error(f"Error parsing YAML file: {e}")
+        logger.error(f"Error parsing YAML file: {e}")
         sys.exit(1)
 
 def print_header(message):
     """Prints a formatted header to the log."""
-    logging.info("="*70)
-    logging.info(f"▶ {message}")
-    logging.info("="*70)
+    logger.info("="*70)
+    logger.info(f"▶ {message}")
+    logger.info("="*70)
 
 def check_dependencies():
     """Checks for essential external dependencies."""
     print_header("Step 1: Checking Dependencies")
     if not shutil.which("julia"):
-        logging.error(
+        logger.error(
             "Julia is not found in your system's PATH. "
             "It is required for symbolic regression with PySR. "
             "Please install it from: https://julialang.org/downloads/"
         )
         sys.exit(1)
-    logging.info("✅ SUCCESS: All essential dependencies are found.")
+    logger.info("✅ SUCCESS: All essential dependencies are found.")
 
 def run_script(script_path: str, description: str, capture_output: bool = False):
     """Helper function to run an external Python script."""
-    logging.info(f"Running: {description}")
+    logger.info(f"Running: {description}")
     script_path = Path(script_path)
     if not script_path.exists():
-        logging.error(f"Script not found: {script_path}")
+        logger.error(f"Script not found: {script_path}")
         return False
 
     try:
@@ -72,7 +67,7 @@ def run_script(script_path: str, description: str, capture_output: bool = False)
                 bufsize=1
             ) as proc:
                 for line in proc.stdout:
-                    logging.info(line.strip())
+                    logger.info(line.strip())
             if proc.returncode != 0:
                 raise subprocess.CalledProcessError(proc.returncode, proc.args)
         else:
@@ -82,21 +77,21 @@ def run_script(script_path: str, description: str, capture_output: bool = False)
                 check=True, capture_output=True, text=True
             )
             if result.stdout:
-                logging.info(f"--- STDOUT ---\n{result.stdout.strip()}")
+                logger.info(f"--- STDOUT ---\n{result.stdout.strip()}")
             if result.stderr:
-                logging.warning(f"--- STDERR ---\n{result.stderr.strip()}")
+                logger.warning(f"--- STDERR ---\n{result.stderr.strip()}")
 
-        logging.info(f"✅ SUCCESS: {description} complete.")
+        logger.info(f"✅ SUCCESS: {description} complete.")
         return True
     except subprocess.CalledProcessError as e:
-        logging.error(f"❌ ERROR: Failed during '{description}'.")
+        logger.error(f"❌ ERROR: Failed during '{description}'.")
         if hasattr(e, 'stdout') and e.stdout:
-            logging.error(f"--- STDOUT ---\n{e.stdout.strip()}")
+            logger.error(f"--- STDOUT ---\n{e.stdout.strip()}")
         if hasattr(e, 'stderr') and e.stderr:
-            logging.error(f"--- STDERR ---\n{e.stderr.strip()}")
+            logger.error(f"--- STDERR ---\n{e.stderr.strip()}")
         return False
     except Exception as e:
-        logging.error(f"An unexpected error occurred during '{description}': {e}")
+        logger.error(f"An unexpected error occurred during '{description}': {e}")
         return False
 
 
@@ -141,13 +136,13 @@ def main():
                 continue
 
             if not func(**kwargs):
-                logging.error(f"Step {step_num} failed. Aborting workflow.")
+                logger.error(f"Step {step_num} failed. Aborting workflow.")
                 sys.exit(1)
         else:
-            logging.warning(f"Step {step_num} is not a valid step. Skipping.")
+            logger.warning(f"Step {step_num} is not a valid step. Skipping.")
 
     print_header("Workflow Complete!")
-    logging.info("✅ All selected tasks finished successfully!")
+    logger.info("✅ All selected tasks finished successfully!")
 
 if __name__ == "__main__":
     main()

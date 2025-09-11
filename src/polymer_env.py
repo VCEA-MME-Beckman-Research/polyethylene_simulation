@@ -19,8 +19,7 @@ import gymnasium as gym
 from gymnasium.spaces import Box
 import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 class PolymerSimulationEnv(gym.Env):
     """
@@ -72,12 +71,12 @@ class PolymerSimulationEnv(gym.Env):
             sympy_expr = sympy.sympify(scission_model['sympy_expr'])
             self.scission_symbols = tuple(sorted(sympy_expr.free_symbols, key=lambda s: str(s)))
             self.scission_function = sympy.lambdify(self.scission_symbols, sympy_expr, 'numpy')
-            logging.info(f"Successfully loaded symbolic scission model from {self.scission_model_path}.")
+            logger.info(f"Successfully loaded symbolic scission model from {self.scission_model_path}.")
         except FileNotFoundError:
-            logging.warning(f"Scission model at '{self.scission_model_path}' not found. Using fallback linear model.")
+            logger.warning(f"Scission model at '{self.scission_model_path}' not found. Using fallback linear model.")
             self.scission_function = None
         except (json.JSONDecodeError, KeyError) as e:
-            logging.error(f"Failed to parse scission model '{self.scission_model_path}': {e}")
+            logger.error(f"Failed to parse scission model '{self.scission_model_path}': {e}")
             self.scission_function = None
 
     def _load_experimental_data(self):
@@ -90,12 +89,12 @@ class PolymerSimulationEnv(gym.Env):
                 float(dose_rate): {key: np.array(val) for key, val in records.items()}
                 for dose_rate, records in raw_data.items()
             }
-            logging.info(f"Successfully loaded experimental data from {self.experimental_data_path}.")
+            logger.info(f"Successfully loaded experimental data from {self.experimental_data_path}.")
         except FileNotFoundError:
-            logging.error(f"Experimental data file not found: {self.experimental_data_path}")
+            logger.error(f"Experimental data file not found: {self.experimental_data_path}")
             raise
         except (json.JSONDecodeError, KeyError) as e:
-            logging.error(f"Failed to parse experimental data file '{self.experimental_data_path}': {e}")
+            logger.error(f"Failed to parse experimental data file '{self.experimental_data_path}': {e}")
             raise
 
     def evaluate_scission_equation(self, dose_rate, t, PEOOH):
@@ -109,7 +108,7 @@ class PolymerSimulationEnv(gym.Env):
         except KeyError as e:
             msg = (f"Symbolic function contains an unknown variable: {e}. "
                    f"Expected 'x0' or 'x1', but symbols are: {[str(s) for s in self.scission_symbols]}")
-            logging.error(msg)
+            logger.error(msg)
             raise ValueError(msg)
         
         return self.scission_function(*args_for_call)
@@ -143,7 +142,7 @@ class PolymerSimulationEnv(gym.Env):
     def reset(self, seed=None, options=None):
         """Resets the environment for a new episode."""
         super().reset(seed=seed)
-        # self.param_multipliers is initialized in __init__
+        self.param_multipliers = np.array([1.0, 1.0])
         return self._get_rl_state(), {}
 
     def step(self, action: np.ndarray):
@@ -250,11 +249,11 @@ if __name__ == '__main__':
     action = env.action_space.sample()
     next_obs, reward, done, _, _ = env.step(action)
     
-    logging.info(f"Initial Observation: {obs}")
-    logging.info(f"Action Taken: {action}")
-    logging.info(f"Next Observation: {next_obs}")
-    logging.info(f"Reward: {reward}")
-    logging.info(f"Done: {done}")
+    logger.info(f"Initial Observation: {obs}")
+    logger.info(f"Action Taken: {action}")
+    logger.info(f"Next Observation: {next_obs}")
+    logger.info(f"Reward: {reward}")
+    logger.info(f"Done: {done}")
     
     # Example of getting the simulation data
     df = env.get_simulation_data_df()

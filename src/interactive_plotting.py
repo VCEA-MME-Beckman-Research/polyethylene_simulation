@@ -10,8 +10,7 @@ from pathlib import Path
 import logging
 from .database import fetch_data_for_plotting # Updated to relative import
 
-# Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 def create_interactive_plots(db_path: Path, output_dir: Path, run_id: str):
     """
@@ -39,7 +38,7 @@ def create_interactive_plots(db_path: Path, output_dir: Path, run_id: str):
 
     # If no data is returned (e.g., invalid run_id or empty run), exit the function.
     if df.empty:
-        print(f"No data found for run_id: {run_id}. Skipping plot generation.")
+        logger.info(f"No data found for run_id: {run_id}. Skipping plot generation.")
         return
 
     # Ensure the output directory exists. If not, create it.
