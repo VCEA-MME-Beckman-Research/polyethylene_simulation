@@ -87,7 +87,7 @@ class PolymerSimulationEnv:
             nodes = list(range(start_node_idx, start_node_idx + self.params['Lchain']))
             
             for i, node_idx in enumerate(nodes):
-                pos[node_idx] = current_post
+                pos[node_idx] = current_pos
                 current_pos = current_pos + (np.random.rand(3) - 0.5) * 2 # Random walk
             
             G.add_nodes_from(nodes)
