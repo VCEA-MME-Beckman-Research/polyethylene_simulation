@@ -179,4 +179,3 @@ class PolymerSimulationEnv:
         next_state = self._get_state_from_params(self.params, final_conn, final_l2)
         
         return total_reward, next_state
-
