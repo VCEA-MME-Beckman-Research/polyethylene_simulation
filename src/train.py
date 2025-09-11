@@ -124,9 +124,9 @@ def objective(trial: optuna.trial.Trial) -> float:
             action = agent.select_action(np.array(state))
 
             # Environment takes a step with the selected action.
-            # The `env.step` returns next_state, reward, done, and an info dictionary.
-            # The info dictionary is currently empty and does not contain `results_df`.
-            next_state, reward, done, _ = env.step(action)
+            # The `env.step` returns next_state, reward, done, and an info dictionary
+            # containing the DataFrame of simulation results.
+            next_state, reward, done, info = env.step(action)
 
             # Add the experience (state, next_state, action, reward, done) to the replay buffer.
             replay_buffer.add(state, next_state, action, reward, float(done))

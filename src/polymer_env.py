@@ -143,7 +143,8 @@ class PolymerSimulationEnv(gym.Env):
     def reset(self, seed=None, options=None):
         """Resets the environment for a new episode."""
         super().reset(seed=seed)
-        # self.param_multipliers is initialized in __init__
+        # Reset parameter multipliers to their initial values
+        self.param_multipliers = np.array([1.0, 1.0], dtype=np.float32)
         return self._get_rl_state(), {}
 
     def step(self, action: np.ndarray):
@@ -159,8 +160,12 @@ class PolymerSimulationEnv(gym.Env):
         reward = self._calculate_reward(self.predicted_data)
         done = True  # Episode is always done after one step
         next_observation = self._get_rl_state()
-        
-        return next_observation, reward, done, False, {}
+
+        # Package simulation results in the info dictionary
+        results_df = self.get_simulation_data_df()
+        info = {"results_df": results_df}
+
+        return next_observation, reward, done, info
 
     def _run_ode_simulation(self):
         """Runs the ODE-based simulation."""
@@ -248,7 +253,7 @@ if __name__ == '__main__':
     
     # Example of taking a random action
     action = env.action_space.sample()
-    next_obs, reward, done, _, _ = env.step(action)
+    next_obs, reward, done, info = env.step(action)
     
     logging.info(f"Initial Observation: {obs}")
     logging.info(f"Action Taken: {action}")

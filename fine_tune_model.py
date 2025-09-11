@@ -67,8 +67,8 @@ def fine_tune_model():
     logging.info(f"Starting DSAC training for {total_steps} steps...")
     for step in range(total_steps):
         action = agent.select_action(state)
-        next_state, reward, done, _, _ = env.step(action)
-        
+        next_state, reward, done, info = env.step(action)
+
         replay_buffer.add(state, next_state, action, reward, float(done))
         state = next_state
 
@@ -78,9 +78,9 @@ def fine_tune_model():
         if (step + 1) % config['rl_hyperparameters']['checkpoint_frequency'] == 0:
             logging.info(f"Step: {step + 1}/{total_steps}, Reward: {reward:.4f}")
             logging.info(f"  Current Multipliers: {env.param_multipliers}")
-            
+
             # Log data to database
-            log_df = env.get_simulation_data_df()
+            log_df = info.get('results_df', env.get_simulation_data_df())
             if not log_df.empty:
                 # Add run_id, episode_num to the DataFrame before logging
                 log_df['run_id'] = run_id
