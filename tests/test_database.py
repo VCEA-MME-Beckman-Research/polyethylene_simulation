@@ -2,7 +2,12 @@ import sqlite3
 import unittest
 import tempfile
 from pathlib import Path
+import sys
 import pandas as pd
+
+# Add project root to the Python path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from src.database import (
     init_database,
     log_simulation_data,

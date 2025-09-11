@@ -7,6 +7,7 @@ import json
 import yaml
 import sys
 from pathlib import Path
+import pandas as pd
 
 # Add project root to the Python path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -52,7 +53,7 @@ def test_step_method_and_action_effect(env):
     
     # Action should be a small multiplicative change
     action = np.array([0.1, -0.1])
-    next_state, reward, done, _, info = env.step(action)
+    next_state, reward, done, info = env.step(action)
     
     # Check if multipliers were updated correctly
     # np.exp(0.1 * 0.1) approx 1.01
@@ -64,6 +65,8 @@ def test_step_method_and_action_effect(env):
     assert isinstance(reward, float) and np.isfinite(reward), "Reward should be a finite float."
     assert done is True, "Episode should be done after one step."
     assert isinstance(info, dict), "Info should be a dictionary."
+    assert 'results_df' in info, "Info should contain 'results_df'."
+    assert isinstance(info['results_df'], pd.DataFrame), "results_df should be a pandas DataFrame."
     assert np.array_equal(next_state, env.param_multipliers), "Next state should be the new multipliers."
 
 def test_reward_calculation(env):

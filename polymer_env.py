@@ -34,11 +34,14 @@ class PolymerSimulationEnv:
         
         # 3. Calculate reward and next state
         reward, next_state = self._calculate_reward_and_next_state(results_df, action, sim_duration)
-        
+
         # For this setup, each step is a full simulation, so it's always "done"
         done = True
-        
-        return next_state, reward, done, results_df
+
+        # Wrap additional data in an info dictionary
+        info = {"results_df": results_df}
+
+        return next_state, reward, done, info
 
     def _apply_action(self, action):
         """Updates parameters based on the agent's relative action."""
