@@ -103,12 +103,12 @@ class PolymerSimulationEnv(gym.Env):
         if self.scission_function is None:
             return self.k['k5'] * PEOOH  # Fallback to original model
 
-        arg_map = {'x0': dose_rate, 'x1': t}
+        arg_map = {'x0': dose_rate, 'x1': t, 'x2': PEOOH}
         try:
             args_for_call = [arg_map[str(s)] for s in self.scission_symbols]
         except KeyError as e:
             msg = (f"Symbolic function contains an unknown variable: {e}. "
-                   f"Expected 'x0' or 'x1', but symbols are: {[str(s) for s in self.scission_symbols]}")
+                   f"Expected one of {list(arg_map.keys())}, but symbols are: {[str(s) for s in self.scission_symbols]}")
             logging.error(msg)
             raise ValueError(msg)
         
@@ -143,7 +143,7 @@ class PolymerSimulationEnv(gym.Env):
     def reset(self, seed=None, options=None):
         """Resets the environment for a new episode."""
         super().reset(seed=seed)
-        # self.param_multipliers is initialized in __init__
+        self.param_multipliers = np.array([1.0, 1.0])
         return self._get_rl_state(), {}
 
     def step(self, action: np.ndarray):
