@@ -1,6 +1,5 @@
 # polymer_env.py
 import numpy as np
-import pandas as pd
 import networkx as nx
 from scipy.spatial import KDTree
 from scipy.sparse.linalg import eigsh
