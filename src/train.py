@@ -132,6 +132,19 @@ def objective(trial: optuna.trial.Trial) -> float:
             replay_buffer.add(state, next_state, action, reward, float(done))
             state = next_state # Update the current state for the next iteration
 
+            # Log simulation results from the info dictionary
+            log_df = info.get('results_df', env.get_simulation_data_df())
+            if not log_df.empty:
+                log_df['run_id'] = run_id
+                log_df['episode_num'] = episode + 1
+                log_df['voxel_id'] = 0
+                log_df['pe_conc'] = 0.0
+                log_df['o2_conc'] = 0.0
+                log_df['pe_rad_conc'] = 0.0
+                log_df['peoo_rad_conc'] = 0.0
+                log_df['peooh_conc'] = 0.0
+                log_simulation_data(db_path, log_df)
+
             # If enough experiences are in the replay buffer, train the agent.
             if len(replay_buffer.storage) > config['rl_hyperparameters']['batch_size']:
                 agent.train(replay_buffer, config['rl_hyperparameters']['batch_size'])
