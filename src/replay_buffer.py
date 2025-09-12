@@ -61,6 +61,9 @@ class ReplayBuffer:
         Args:
             batch_size (int): The number of experiences to sample.
 
+        Raises:
+            ValueError: If `batch_size` is greater than the number of stored experiences.
+
         Returns:
             tuple: A tuple containing five NumPy arrays:
                    - states (np.ndarray): A batch of states.
@@ -69,6 +72,12 @@ class ReplayBuffer:
                    - rewards (np.ndarray): A batch of rewards.
                    - dones (np.ndarray): A batch of done flags.
         """
+        if len(self.storage) < batch_size:
+            raise ValueError(
+                "Cannot sample more elements than present in the replay buffer. "
+                f"Requested: {batch_size}, available: {len(self.storage)}."
+            )
+
         # Randomly select `batch_size` experiences from the stored data.
         batch = random.sample(self.storage, batch_size)
         
