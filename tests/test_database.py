@@ -98,7 +98,7 @@ class TestDatabase(unittest.TestCase):
     def test_fetch_data_invalid_path(self):
         """Ensure functions raise an error when database path is invalid."""
         invalid_path = Path(tempfile.gettempdir()) / "nonexistent_dir" / "db.db"
-        with self.assertRaises(Exception):
+        with self.assertRaises(sqlite3.Error):
             fetch_data_for_plotting(invalid_path)
 
     def test_get_run_metadata_missing_id(self):
