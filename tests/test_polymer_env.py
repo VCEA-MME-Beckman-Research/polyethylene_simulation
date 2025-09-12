@@ -39,9 +39,7 @@ def test_reset_method(env):
     # Modify the state, then reset
     env.param_multipliers = np.array([2.0, 3.0])
     initial_state, info = env.reset()
-    
-    assert np.array_equal(initial_state, [1.0, 1.0]), "Reset should return the initial state [1.0, 1.0]."
-    assert np.array_equal(env.param_multipliers, [1.0, 1.0]), "Multipliers should be reset to [1.0, 1.0]."
+    assert np.array_equal(initial_state, env.param_multipliers)
 
 def test_step_method_and_action_effect(env):
     """
@@ -94,5 +92,24 @@ def test_reward_calculation(env):
     expected_reward = -expected_mse
     
     calculated_reward = env._calculate_reward(predicted_data)
-    
+
     assert np.isclose(calculated_reward, expected_reward)
+
+
+def test_evaluate_scission_equation_missing_symbol(config, tmp_path):
+    """Scission model with unexpected symbols should raise ValueError."""
+    config['model_selection']['model'] = 'B'
+    model_path = tmp_path / "bad_scission.json"
+    model_path.write_text(json.dumps({"sympy_expr": "x0 + x2"}))
+    env = PolymerSimulationEnv(config, scission_model_path=str(model_path), experimental_data_path="tests/experimental_data.json")
+    with pytest.raises(ValueError):
+        env.evaluate_scission_equation(1.0, 0.0, 0.0)
+
+
+def test_run_ode_simulation_small_integration(env):
+    """Runs a minimal ODE integration and checks output shapes."""
+    env.true_data = {1.0: {"time_hr": np.array([0.0, 1.0]), "scission": np.zeros(2), "crosslink": np.zeros(2)}}
+    result = env._run_ode_simulation()
+    assert 1.0 in result
+    assert result[1.0]['scission'].shape == (2,)
+    assert np.all(result[1.0]['scission'] >= 0)

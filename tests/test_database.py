@@ -2,7 +2,11 @@ import sqlite3
 import unittest
 import tempfile
 from pathlib import Path
+import sys
 import pandas as pd
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from src.database import (
     init_database,
     log_simulation_data,
@@ -90,6 +94,17 @@ class TestDatabase(unittest.TestCase):
         self.assertIn('run1', run_ids)
         self.assertIn('run2', run_ids)
         self.assertEqual(len(run_ids), 2)
+
+    def test_fetch_data_invalid_path(self):
+        """Ensure functions raise an error when database path is invalid."""
+        invalid_path = Path(tempfile.gettempdir()) / "nonexistent_dir" / "db.db"
+        with self.assertRaises(sqlite3.Error):
+            fetch_data_for_plotting(invalid_path)
+
+    def test_get_run_metadata_missing_id(self):
+        """Requesting metadata for unknown run ID should return empty dict."""
+        result = get_run_metadata(self.db_path, 'missing')
+        self.assertEqual(result, {})
 
 if __name__ == '__main__':
     unittest.main()
