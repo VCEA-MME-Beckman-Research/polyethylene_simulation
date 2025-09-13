@@ -143,7 +143,8 @@ class PolymerSimulationEnv(gym.Env):
     def reset(self, seed=None, options=None):
         """Resets the environment for a new episode."""
         super().reset(seed=seed)
-        # self.param_multipliers is initialized in __init__
+        # Reset parameter multipliers to their initial values
+        self.param_multipliers = np.array([1.0, 1.0])
         return self._get_rl_state(), {}
 
     def step(self, action: np.ndarray):
